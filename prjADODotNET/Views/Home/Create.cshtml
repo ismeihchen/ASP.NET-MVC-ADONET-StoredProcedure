@@ -1,4 +1,4 @@
-﻿@model prjADODotNET.Models.tEmployee
+﻿@model prjStoredProcedure.Models.tEmployee
 
 @{
     ViewBag.Title = "員工新增";
@@ -14,9 +14,7 @@
         <div class="form-group">
             <label for="DepartmentId" class="control-label col-md-2">部門</label>
             <div class="col-md-10">
-                <select id="fDepId" name="fDepId" class="form-control"></select>
-
-                @*@Html.DropDownList("fDepId", ViewBag.DepartmentId as SelectList, new { @class = "form-control" })*@
+                <select id="fDepId" name="fDepId" class="form-control"></select>                
             </div>
         </div>
 

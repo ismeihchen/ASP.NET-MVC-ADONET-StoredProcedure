@@ -1,27 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity.Core.Objects;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
-using prjADODotNET.Models;
+using prjStoredProcedure.Models;
 
-namespace prjADODotNET.Controllers
+namespace prjStoredProcedure.Controllers
 {
     public class HomeController : Controller
     {
-        EmpRepository db = new EmpRepository();
-
-        // GET: Home
-        public ActionResult Index(int id = 1)
+        EmployeeEntities db = new EmployeeEntities();
+       
+        public ActionResult Index(int depId = 1)
         {
-
-            var tDepartment = db.GetAllDepartment();
-            var tEmployee = db.GetEmployeesByDepId(id);
+            var tDepartment = db.usp_GetAllDepartment().ToList();
+            var tEmployee = db.usp_GetEmployeeByDepId(depId).ToList();
 
             //部門名稱
-            ViewBag.DepName = tEmployee
-                .Where(m => m.fDepId == id)
+            ViewBag.DepName = db.tDepartment
+                .Where(m => m.fDepId == depId)
                 .FirstOrDefault().fDepName + "部門";
 
             ViewModelDepEmpByDep result = new ViewModelDepEmpByDep()
@@ -35,8 +34,8 @@ namespace prjADODotNET.Controllers
 
         public ActionResult Create()
         {
-            ////部門
-            //ViewBag.DepartmentId = new SelectList(db.GetAllDepartment(), "fDepId", "fDepName");
+            //部門
+            ViewBag.DepartmentId = new SelectList(db.usp_GetAllDepartment(), "fDepId", "fDepName");
 
             return View();
         }
@@ -47,56 +46,96 @@ namespace prjADODotNET.Controllers
         {
             if (ModelState.IsValid)
             {
-                var result = db.AddEmployee(employee);
-                return RedirectToAction("Index", new { id = employee.fDepId });
+                try
+                {
+                    ObjectParameter param = new ObjectParameter("fEmpId", typeof(Int32));
+
+                    var result = db.usp_PR_Employee_Insert(
+                        param,
+                        employee.fName,
+                        employee.fPhone,
+                        employee.fDepId);
+
+                    //員工編號
+                    var EmployeeId = param.Value; 
+                    return RedirectToAction("Index", new { depId = employee.fDepId });
+                }
+                catch
+                {
+                    throw;
+                }
             }
             return View();
         }
 
         public ActionResult Edit(int id)
-        {          
-            var tEmployee = db.GetEmployeesByEmpID(id);
-            return View(tEmployee);
-        }
+        {
+            var tDepartment = db.usp_GetAllDepartment().ToList();
+            var tEmployee = db.usp_GetEmployeeByEmpID(id).FirstOrDefault();
+            ViewModelDepEmpByEmp result = new ViewModelDepEmpByEmp()
+            {
+                department = tDepartment,
+                employee = tEmployee
+            };
 
+            return View(result);
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(tEmployee employee)
         {
             if (ModelState.IsValid)
             {
-                db.UpdateEmployee(employee);
-                return RedirectToAction("Index", new { id = employee.fDepId });
+                try
+                {
+                    var result = db.usp_PR_Employee_UpdateByPK(
+                        employee.fEmpId,
+                        employee.fName,
+                        employee.fPhone,
+                        employee.fDepId);
+
+                    return RedirectToAction("Index", new { depId = employee.fDepId });
+                }
+                catch
+                {
+                    throw;
+                }
             }
             return View();
         }
 
-
         public ActionResult Delete(string id)
         {
-            int fDepId = 1;
+            string fDepId = "1";
             if (!string.IsNullOrWhiteSpace(id))
             {
-                var tEmployee = db.GetEmployeesByEmpID(Convert.ToInt32(id));
+                var isExists = db.usp_GetEmployeeByEmpID(int.Parse(id)).FirstOrDefault();
 
-                if (tEmployee != null)
+                if (isExists != null)
                 {
-                    fDepId = (int)tEmployee.fDepId;
-                    db.DeleteEmployee(Convert.ToInt32(id));
+                    fDepId = isExists.fDepId.ToString();
+                    var result = db.usp_PR_Employee_DeleteByPK(id);
                 }
             }
 
-            return RedirectToAction("Index", new { id = fDepId });
+            return RedirectToAction("Index", new { depId = fDepId });
+
         }
-      
+
         /// <summary>
         /// 取得部門資料
         /// </summary>
         /// <returns></returns>
         public JsonResult JsonDepartment()
         {
-            var result = db.GetAllDepartment();
-            return Json(result, JsonRequestBehavior.AllowGet);          
+            var result = db.usp_GetAllDepartment().ToList();            
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            db.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

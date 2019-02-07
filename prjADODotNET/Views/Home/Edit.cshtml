@@ -1,0 +1,76 @@
+﻿@model prjADODotNET.Models.tEmployee
+@{
+    ViewBag.Title = "員工編輯";
+}
+
+<h2>@ViewBag.Title</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+
+        <hr />
+
+        @Html.HiddenFor(model => model.fEmpId)
+
+        <div class="form-group">
+            <label for="fDepId" class="control-label col-md-2">部門</label>
+            <div class="col-md-10">
+                <select id="fDepId" name="fDepId" class="form-control"></select>
+                <input id="_fDepId" name="_fDepId" type="hidden" value="@(Model.fDepId)" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="fDepId" class="control-label col-md-2">姓名</label>
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.fName, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.fName, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="fDepId" class="control-label col-md-2">電話</label>
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.fPhone, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.fPhone, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="編輯" class="btn btn-primary" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("返回員工列表", "Index", "Home", new { @class = "btn btn-success" })
+</div>
+
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+<script src="~/Scripts/jquery.validate.min.js"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        
+        fnLoadDepartmentData();
+
+        function fnLoadDepartmentData() {            
+            var apiurldep = "/Home/JsonDepartment";
+            $.ajax({
+                url: apiurldep,
+                type: "GET",
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        $('#fDepId').append('<option value=' + data[i].fDepId + '>' + data[i].fDepName + '</option > ');
+                    }                    
+                    var _fDepId = $('#_fDepId').val();                   
+                    $("#fDepId").val(_fDepId).change();
+                }
+            });
+        }
+    });
+</script>

@@ -1,0 +1,41 @@
+﻿@model prjADODotNET.Models.ViewModelDepEmpByDep
+
+@{
+    ViewBag.Title = "員工查詢";
+}
+
+<h2>@ViewBag.DepName</h2>
+
+<p>@Html.ActionLink("員工新增", "Create", "Home", new { @class = "btn btn-success" })</p>
+
+<div class="row">
+    <div class="col-xs-4">
+        @foreach (var item in Model.department)
+        {
+            <p>@Html.ActionLink(item.fDepName, "Index", new { id = item.fDepId })</p>
+        }
+    </div>
+    <div class="col-xs-8">
+        <table class="table">
+            <tr>
+                <th>員工編號</th>
+                <th>姓名</th>
+                <th>電話</th>
+                <th></th>
+            </tr>
+            @foreach (var item in Model.employee)
+            {
+                <tr>
+                    <td>@item.fEmpId</td>
+                    <td>@item.fName</td>
+                    <td>@item.fPhone</td>
+                    <td>
+                        @Html.ActionLink("編輯", "Edit", new { id = item.fEmpId }, new { @class = "btn btn-primary" })
+
+                        @Html.ActionLink("刪除", "Delete", new { id = item.fEmpId }, new { onclick = "return confirm('確定刪除嗎？');", @class = "btn btn-danger" })
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>
